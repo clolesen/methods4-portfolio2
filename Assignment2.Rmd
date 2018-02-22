@@ -50,7 +50,7 @@ Questions:
 
 ```{r}
 t = "RF"
-dens = 20
+dens = 1000
 
 p_grid = seq(from = 0, to = 1, length.out = dens)
 prior = rep(1, dens)
@@ -85,7 +85,7 @@ for (t in d$Teacher) {
   
   Data=data.frame(grid=p_grid,posterior=posterior,prior=prior,likelihood=likelihood)
   plot = ggplot(Data,aes(grid,posterior))+  
-    geom_point()+geom_line()+theme_classic()+  
+    geom_line()+theme_classic()+  
     geom_line(aes(grid,prior/dens),color='red')+  
     xlab(paste("Knowledge of", t))+ 
     ylab("posterior probability")
@@ -107,7 +107,7 @@ for (t in d$Teacher) {
   
   Data=data.frame(grid=p_grid,posterior=posterior,prior=prior,likelihood=likelihood)
   plot = ggplot(Data,aes(grid,posterior))+  
-    geom_point()+geom_line()+theme_classic()+  
+    geom_line()+theme_classic()+  
     geom_line(aes(grid,prior/dens),color='red')+  
     xlab(paste("Knowledge of", t))+ 
     ylab("posterior probability")
