@@ -85,6 +85,8 @@ precis(qa)
 2a. Produce plots of the prior, and posterior for each teacher.
 
 ```{r}
+est_list = list()
+
 for (t in d$Teacher) {
   p_grid = seq(from = 0, to = 1, length.out = dens)
   prior = rep(1, dens)
@@ -98,6 +100,7 @@ for (t in d$Teacher) {
   Data=data.frame(grid=p_grid,posterior=posterior,prior=prior,likelihood=likelihood)
   plot = ggplot(Data,aes(grid,posterior))+  
     geom_line()+theme_classic()+  
+    theme(axis.text.y = element_blank()) +
     geom_line(aes(grid,prior/dens),color='red')+  
     xlab(paste("Knowledge of", t))+ 
     ylab("posterior probability")
@@ -110,7 +113,7 @@ for (t in d$Teacher) {
 3a. Produce plots of the prior and posterior for each teacher.
 
 ```{r}
-est_list = list()
+
 for (t in d$Teacher) {
   p_grid = seq(from = 0, to = 1, length.out = dens)
   prior = dnorm(p_grid, mean = 0.8, sd = 0.2)
@@ -156,6 +159,14 @@ for (t in d$Teacher) {
   posterior_norm = unst.posterior_norm / sum(unst.posterior_norm)
   posterior_flat = unst.posterior_flat / sum(unst.posterior_flat)
   
+  est_flat = sum(posterior_flat[p_grid > 0.75])
+  est_norm = sum(posterior_norm[p_grid > 0.75])
+  
+  est_list[[t]] = est_flat
+  est_list[[paste(t, "_norm")]] = est_norm
+  
+  
+  
   Data=data.frame(grid = p_grid,
                   posterior_norm = posterior_norm,
                   posterior_flat = posterior_flat,
@@ -163,12 +174,14 @@ for (t in d$Teacher) {
                   prior_flat = prior_flat,
                   likelihood=likelihood)
   
+  
   plot = ggplot(Data,aes(grid,posterior_norm))+  
-    geom_line(color = "red")+
-    geom_line(aes(grid,posterior_flat)) +
+    geom_line()+
+    geom_line(aes(grid,posterior_flat), linetype = 3, size = 0.4) +
     theme_classic()+  
-    geom_line(aes(grid,prior_flat/dens), linetype = "dotted")+
-    geom_line(aes(grid,prior_norm/dens),color='red', linetype = "dotted")+ 
+    theme(axis.text.y = element_blank()) +
+    geom_line(aes(grid,prior_flat/dens), color='red', linetype = 3, size = 0.4)+
+    geom_line(aes(grid,prior_norm/dens), color='red')+ 
     
     xlab(paste("Knowledge of", t))+ 
     ylab("posterior probability")
@@ -199,11 +212,12 @@ for (t in d$Teacher) {
                   likelihood=likelihood)
   
   plot = ggplot(Data,aes(grid,posterior_norm))+  
-    geom_line(color = "red")+
-    geom_line(aes(grid,posterior_flat)) +
+    geom_line()+
+    geom_line(aes(grid,posterior_flat), linetype = 3, size = 0.4) +
     theme_classic()+  
-    geom_line(aes(grid,prior_flat/dens), linetype = "dotted")+
-    geom_line(aes(grid,prior_norm/dens),color='red', linetype = "dotted")+ 
+    theme(axis.text.y = element_blank()) +
+    geom_line(aes(grid,prior_flat/dens), color='red', linetype = 3, size = 0.4)+
+    geom_line(aes(grid,prior_norm/dens), color='red')+ 
     
     xlab(paste("Knowledge of", t))+ 
     ylab("posterior probability")
