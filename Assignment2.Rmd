@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(rethinking)
 library(ggplot2)
+library(tidyverse)
 ```
 
 
@@ -50,7 +51,7 @@ Questions:
 
 ```{r}
 t = "RF"
-dens = 1000
+dens = 1e4
 
 p_grid = seq(from = 0, to = 1, length.out = dens)
 prior = rep(1, dens)
@@ -58,7 +59,15 @@ likelihood = dbinom(d$Correct[d$Teacher==t], size = d$Questions[d$Teacher==t], p
 unst.posterior = likelihood * prior
 posterior = unst.posterior / sum(unst.posterior)
 
-plot(posterior) # DO A PRETTY GGPLOT
+sum(posterior[p_grid > 0.5]) # 0.5
+
+ggplot(Data,aes(grid,posterior))+  
+    geom_line()+theme_classic()+  
+    geom_line(aes(grid,prior/dens),color='red')+  
+    xlab(paste("Knowledge of", t))+ 
+    ylab("posterior probability")
+
+
 
 
 
@@ -83,6 +92,9 @@ for (t in d$Teacher) {
   unst.posterior = likelihood * prior
   posterior = unst.posterior / sum(unst.posterior)
   
+  est = sum(posterior[p_grid > 0.75])
+  est_list[[t]] = est
+  
   Data=data.frame(grid=p_grid,posterior=posterior,prior=prior,likelihood=likelihood)
   plot = ggplot(Data,aes(grid,posterior))+  
     geom_line()+theme_classic()+  
@@ -98,12 +110,17 @@ for (t in d$Teacher) {
 3a. Produce plots of the prior and posterior for each teacher.
 
 ```{r}
+est_list = list()
 for (t in d$Teacher) {
   p_grid = seq(from = 0, to = 1, length.out = dens)
   prior = dnorm(p_grid, mean = 0.8, sd = 0.2)
   likelihood = dbinom(d$Correct[d$Teacher==t], size = d$Questions[d$Teacher==t], prob = p_grid)
   unst.posterior = likelihood * prior
   posterior = unst.posterior / sum(unst.posterior)
+  
+  est = sum(posterior[p_grid > 0.75])
+  est_list[[t]] = est
+  
   
   Data=data.frame(grid=p_grid,posterior=posterior,prior=prior,likelihood=likelihood)
   plot = ggplot(Data,aes(grid,posterior))+  
@@ -124,6 +141,7 @@ for (t in d$Teacher) {
 d$Correct2 = d$Correct*100
 d$Questions2 = d$Questions*100
 
+#loop for data times 100
 for (t in d$Teacher) {
   p_grid = seq(from = 0, to = 1, length.out = dens)
   
@@ -145,21 +163,54 @@ for (t in d$Teacher) {
                   prior_flat = prior_flat,
                   likelihood=likelihood)
   
-  plot_norm = ggplot(Data,aes(grid,posterior_norm))+  
-    geom_point()+geom_line()+theme_classic()+  
-    geom_line(aes(grid,prior_norm/dens),color='red')+  
+  plot = ggplot(Data,aes(grid,posterior_norm))+  
+    geom_line(color = "red")+
+    geom_line(aes(grid,posterior_flat)) +
+    theme_classic()+  
+    geom_line(aes(grid,prior_flat/dens), linetype = "dotted")+
+    geom_line(aes(grid,prior_norm/dens),color='red', linetype = "dotted")+ 
+    
     xlab(paste("Knowledge of", t))+ 
     ylab("posterior probability")
   
-  plot_flat = ggplot(Data,aes(grid,posterior_flat))+  
-    geom_point()+geom_line()+theme_classic()+  
-    geom_line(aes(grid,prior_flat/dens),color='red')+  
-    xlab(paste("Knowledge of", t))+ 
-    ylab("posterior probability")
-  
-  print(plot_norm)
-  print(plot_flat)
+  print(plot)
 }
+
+#loop for normal data
+for (t in d$Teacher) {
+  p_grid = seq(from = 0, to = 1, length.out = dens)
+  
+  prior_norm = dnorm(p_grid, mean = 0.8, sd = 0.2)
+  prior_flat = rep(1, dens)
+  
+  likelihood = dbinom(d$Correct[d$Teacher==t], size = d$Questions[d$Teacher==t], prob = p_grid)
+  
+  unst.posterior_norm = likelihood * prior_norm
+  unst.posterior_flat = likelihood * prior_flat
+  
+  posterior_norm = unst.posterior_norm / sum(unst.posterior_norm)
+  posterior_flat = unst.posterior_flat / sum(unst.posterior_flat)
+  
+  Data=data.frame(grid = p_grid,
+                  posterior_norm = posterior_norm,
+                  posterior_flat = posterior_flat,
+                  prior_norm = prior_norm,
+                  prior_flat = prior_flat,
+                  likelihood=likelihood)
+  
+  plot = ggplot(Data,aes(grid,posterior_norm))+  
+    geom_line(color = "red")+
+    geom_line(aes(grid,posterior_flat)) +
+    theme_classic()+  
+    geom_line(aes(grid,prior_flat/dens), linetype = "dotted")+
+    geom_line(aes(grid,prior_norm/dens),color='red', linetype = "dotted")+ 
+    
+    xlab(paste("Knowledge of", t))+ 
+    ylab("posterior probability")
+  
+  print(plot)
+}  
+
 ```
 
 
